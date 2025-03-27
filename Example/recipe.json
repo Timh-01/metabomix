@@ -1,6 +1,6 @@
 {"paths":{
     "base_output_folder":"./Example/Results",
-    "internal_settings":"./src/metabomix/config.json",
+    "internal_settings":"./config.json",
     "name":"Example_run",
     "input_mgf":"./Example/pesticides.mgf"
     },
