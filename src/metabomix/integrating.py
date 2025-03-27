@@ -28,7 +28,7 @@ def network_to_edgelist_and_nodes_df(graph: nx.Graph) -> tuple[pd.DataFrame, pd.
       nodes[node]["placeholder"] = "placeholder"
     #    networkdf = pd.DataFrame.from_dict(dict(graph.nodes(data=True)), orient='index')  
     networkdf = pd.DataFrame.from_dict(nodes,orient='index')      
-    #nx.write_graphml(graph, "/lustre/BIF/nobackup/hendr218/Data/Tests/Pos/Full_set/result/fbmn_sirius_integrated_network.graphml")
+
     edgelist = nx.to_pandas_edgelist(graph)
     return networkdf, edgelist
 
