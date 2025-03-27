@@ -1,0 +1,181 @@
+{
+"classyfire":{
+        "depth":"4",
+        "running":{
+                "requirements":{
+                        "paths":[]
+                        }
+            },
+        "integration":{
+                "depth":"4",
+                "requirements":{
+                        "paths":["classyfire_output"]
+                        },
+                "translations":{
+                        "merging":{"smiles": "smiles","inchi":"inchi"},
+                        "columns":{
+                                "inchi":"CF:inchi",
+                                "cf_kingdom":"CF:kingdom",
+                                "cf_superclass":"CF:superclass",
+                                "cf_class":"CF:class",
+                                "cf_subclass":"CF:subclass",
+                                "smiles":"CF:smiles"
+                                }
+                        }
+                }       
+        },
+
+"matchms":{
+        "depth":"2",
+        "running":{
+                "requirements":{
+                        "paths":["input_mgf"]
+                        }
+                },
+        "integration":{
+                "requirements":{
+                        "paths":["base_network"]
+                        }
+                }       
+        },
+"ms2lda":{
+        "running":{
+        "depth":"2",
+                "requirements":{
+                        "paths":["input_mgf"],
+                        "modules":["MS2LDA"],
+                        "settings":["preprocessing_parameters","convergence_parameters","annotation_parameters",
+                "model_parameters","train_parameters","fingerprint_parameters","dataset_parameters",
+                "n_motifs","n_iterations","motif_parameter"]
+                        }
+                },
+        "integration":{
+                "depth":"4",
+                "requirements":{
+                        "paths":["ms2lda_results_db","ms2lda_output","input_mgf"],
+                        "modules":["MS2LDA"]
+                        }
+                }       
+        },
+
+"mzmine":{
+        "running":{
+                "depth":"1",
+                "requirements":{
+                        "paths":["mzmine_location","mzmine_userfile_location","mzmine_base_batchfile"],
+                        "optional_paths": ["data_folder","file_list"]
+                        }
+                },
+        "integration":{
+                "depth":"4",
+                "requirements":{
+                        "paths":["input_mgf"]
+                        }
+                }       
+        },
+
+"plastchemdb":{
+    "integration":{
+        "depth":"4",
+        "requirements":{
+                "paths":["sirius_output","plastchem_path"]
+                        },
+        "translations":{
+                "merging":{"smiles": "canonical_smiles"},
+                "columns":{
+                        "Hazard_score":"plastchem:hazard_score",
+                        "PlastChem_lists":"plastchem:PlastChem_lists",
+                        "Use":"plastchem:use",
+                        "pubchem_name":"plastchem:pcname"
+                        }
+                        }
+            }       
+        }, 
+"sirius":{
+        "running":{
+                "depth":"2",
+                "requirements":{
+                        "paths":["input_mgf","sirius_path"]
+                        },
+                "commands":""
+        },
+        "integration":{
+                "depth":"3",
+                "requirements":{
+                        "paths":["canopus_output","csi:fingerid_output","sirius_tool_output"]
+                        },
+                "translations":{
+                        "sirius":{
+                                "molecularFormula":"sirius:molecularFormula", 
+                                "adduct":"sirius:adduct",
+                                "ZodiacScore":"sirius:Zodiac_Score",
+                                "TreeScore":"sirius:TreeIsotope_Score",
+                                "IsotopeScore":"sirius:Isotope_Score",
+                                "numExplainedPeaks":"sirius:explainedPeaks",
+                                "explainedIntensity":"sirius:explainedIntensity"
+                                },
+                        "csi:fingerid":{
+                                "smiles":"csifingerid:smiles",
+                                "ConfidenceScoreExact":"csifingerid:Confidence_Score",
+                                "InChIkey2D":"csifingerid:inchikey",
+                                "InChI":"csifingerid:inchi"
+                                },
+                        "canopus":{
+                                "ClassyFire#subclass":"canopus:CF_subclass",
+                                "ClassyFire#class":"canopus:CF_class",
+                                "ClassyFire#superclass":"canopus:CF_superclass",
+                                "ClassyFire#most specific class":"canopus:CF_most_specific_class",
+                                "ClassyFire#all classifications":"canopus:CF_all_classifications"
+                                }
+                        }
+                }       
+        },
+"sirius_db":{
+        "integration":{
+                "depth":"3",
+                "requirements":{
+                        "paths":["canopus_output","csi:fingerid_output","sirius_tool_output"]
+                        },
+                "translations":{
+                        "sirius":{
+                                "molecularFormula":"sirius_db:molecularFormula"
+                                },
+                        "csi:fingerid":{
+                                "smiles":"csifingerid_db:smiles",
+                                "InChIkey2D":"csifingerid_db:inchikey",
+                                "InChI":"csifingerid_db:inchi"
+                                },
+                        "canopus":{
+                                "ClassyFire#subclass":"canopus_db:CF_subclass",
+                                "ClassyFire#class":"canopus_db:CF_class",
+                                "ClassyFire#superclass":"canopus_db:CF_superclass",
+                                "ClassyFire#most specific class":"canopus_db:CF_most_specific_class",
+                                "ClassyFire#all classifications":"canopus_db:CF_all_classifications"
+                                }
+                        }
+                }       
+        },
+"toxtree":{
+        "depth":"4",
+        "running":{
+                "requirements":{
+                        "paths":["toxtree_path"],
+                        "settings": ["module"]
+                        },
+                "translations":{
+                        "modules":{"cramer":"toxTree.tree.cramer.CramerRules"}
+                        }
+                },
+        "integration":{
+                "requirements":{
+                        "paths":["toxtree_output"],
+                        "settings": []
+                        },
+                "translations":{
+                        "merging":{"smiles": "SMILES"},
+                        "columns":{"cramer_classification":"toxtree:cramer_classification"}
+                        }
+                }       
+                }
+        
+}

@@ -1,0 +1,94 @@
+{"paths":{
+    "base_output_folder":"./Example/Results",
+    "internal_settings":"./src/metabomix/config.json",
+    "name":"Example_run",
+    "input_mgf":"./Example/pesticides.mgf"
+    },
+"run_tools":{
+    "sirius": "False",
+    "toxtree": "False",
+    "classyfire": "False",
+    "ms2lda": "False",
+    "mzmine": "False",
+    "matchms": "True"
+    },
+"integrate_tools":{
+    "sirius": "False",
+    "toxtree": "False",
+    "classyfire": "False",
+    "ms2lda": "False",
+    "mzmine": "False",
+    "matchms": "True",
+    "plastchemdb": "False"
+},
+"mzmine": {
+
+},
+"toxtree": {
+    "modules":["cramer"]
+},
+"classyfire":{
+
+},
+"sirius":{
+
+},
+"matchsms":{
+
+},
+"ms2lda":{
+    "preprocessing_parameters": {
+        "min_mz": 0,
+        "max_mz": 1000,
+        "max_frags": 1000,
+        "min_frags": 3,
+        "min_intensity": 0.01,
+        "max_intensity": 1
+        },
+    "convergence_parameters": {
+        "step_size": 50,
+        "window_size": 10,
+        "threshold": 0.001,
+        "type": "perplexity_history"
+        },
+    "annotation_parameters": {
+        "criterium": "best",
+        "cosine_similarity": 0.70,
+        "n_mols_retrieved": 5 
+        },
+    "model_parameters": {
+        "rm_top": 0, 
+        "min_cf": 0, 
+        "min_df": 3, 
+        "alpha": 0.6, 
+        "eta": 0.01,
+        "seed": 42
+        },
+    "train_parameters": {
+            "parallel": 3,
+            "workers": 1 
+        },
+    "fingerprint_parameters": {
+        "fp_type": "rdkit",
+        "threshold": 0.8
+        },
+    "dataset_parameters": {
+        "acquisition_type": "DDA",
+        "significant_digits": 2,
+        "charge": 1,
+        "name": "pos_all",
+        "output_folder": "output_folder"
+        },
+    "n_motifs": 200,
+    "n_iterations": 2000,
+    "motif_parameter": 20
+    },
+"cramer":{
+    "integrate_on":{
+            "smiles":"SMILES"
+        },
+    "name_translations":{
+            "toxtree:cramer_classification":"CRAMER"
+        }
+    }
+}
