@@ -84,7 +84,7 @@ def create_network_from_mgf(mgf: str) -> nx.Graph:
     spectrums = [peak_processing(s) for s in spectrums] 
     similarity_measure = ModifiedCosine(tolerance=0.02)
     scores: matchms.Scores = calculate_scores(spectrums, spectrums, similarity_measure,is_symmetric=True)
-    scores.to_pickle(f'{mgf[:-4]}_scores.pickle')
+    # scores.to_pickle(f'{mgf[:-4]}_scores.pickle')
     # scores.filter_by_range(name="ModifiedCosine_matches",low=6,below_operator="<")
 
     network: nx.Graph = create_network_from_scores(scores)

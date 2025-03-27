@@ -1,8 +1,8 @@
 {"paths":{
-    "base_output_folder":"./Example/Results",
-    "internal_settings":"./config.json",
+    "base_output_folder":"./Results",
+    "internal_settings":"config.json",
     "name":"Example_run",
-    "input_mgf":"./Example/pesticides.mgf"
+    "input_mgf":"pesticides.mgf"
     },
 "run_tools":{
     "sirius": "False",
