@@ -21,40 +21,6 @@ try:
 except ImportError:
      MS2LDA = None
 
-# def get_sirius_translators() -> tuple[dict,dict,dict]:
-#     """Provides alternative names for various columns from sirius results"""
-#     sirius_translator: dict[str,str] ={
-#         "sirius:molecularFormula": "molecularFormula",
-#         "sirius:adduct":"adduct",
-#         "sirius:Zodiac_Score":"ZodiacScore",
-#         "TreeIsotope_Score":"TreeScore",
-#         "sirius:Isotope_Score":"IsotopeScore",
-#         "sirius:explainedPeaks":"numExplainedPeaks",
-#         "sirius:explainedIntensity":"explainedIntensity",
-#     }
-#     fingerid_translator: dict[str,str] = {
-#         "csifingerid:smiles":"smiles",
-#         "csifingerid:Confidence_Score":"ConfidenceScoreExact",
-#         "csifingerid:inchikey":"InChIkey2D",
-#         "csifingerid:inchi":"InChI",
-#     }
-
-#     canopus_translator: dict[str,str] = {
-#     "canopus:CF_subclass":"ClassyFire#subclass",
-#     "canopus:CF_class":"ClassyFire#class",
-#     "canopus:CF_superclass":"ClassyFire#superclass",
-#     "canopus:CF_most_specific_class":"ClassyFire#most specific class",
-#     "canopus:CF_all_classifications":"ClassyFire#all classifications",
-#     }
-#     return sirius_translator,fingerid_translator,canopus_translator
-
-# def integrate_all() -> None:
-#     graph = create_network_from_mgf(mgf)
-#     graph.export_to_graphml(network_path)
-#     graph = integrate_sirius(graph)
-#     network_df, network_edgelist = network_to_df(graph)
-#     return network_df,network_edgelist
-
 def network_to_edgelist_and_nodes_df(graph: nx.Graph) -> tuple[pd.DataFrame, pd.DataFrame]:
     """splits a networkx graph into an edge and nodes dataframe"""
     nodes = graph.nodes()
@@ -66,16 +32,6 @@ def network_to_edgelist_and_nodes_df(graph: nx.Graph) -> tuple[pd.DataFrame, pd.
     edgelist = nx.to_pandas_edgelist(graph)
     return networkdf, edgelist
 
-    
-   #G = nx.read_graphml("/lustre/BIF/nobackup/hendr218/mycode/workflows/network_matchms_testfull.graphml")
-
-    # integrated_df, edgelist = create_sirius_df(output_path_sirius,fbmn_path,annotations_df)
-
-# def integrate_tool_to_graph(graph: nx.Graph, tool) -> nx.Graph:
-    
-#     get_integration_settings(tool)
-    
-#     return graph
 
 def integrate_sirius_to_graph(graph: nx.Graph,translators: tuple[dict,dict,dict],outputs: tuple[str,str,str]) -> nx.Graph:
     """Merge results from sirius tools to graph"""
@@ -154,15 +110,6 @@ def create_network_from_scores(scores: matchms.Scores ) -> nx.Graph:
     ms_network.create_network(newscores,score_name="ModifiedCosine_score")
     return ms_network
 
-# def integrate_cramer_to_df(base_df: pd.DataFrame,cramer_output: str,shared_col: str) -> pd.DataFrame:
-#     """Takes cramer output csv and add classes to DF based on shared smiles"""
-#     cramer_results: pd.DataFrame = parse_cramer_classifications(cramer_output)
-#     base_df["toxtree:cramer_classification"] = base_df[shared_col].map(lambda smiles:
-#     query_df_value_by_other_col(smiles,datab=cramer_results,searchcol="SMILES",targetcol="cramer_classification"))                                                                     )
-#     integrate_df_col_to_df(target:pd.DataFrame,t_vals,t_queries,source:pd.DataFrame,s_vals,s_queries) -> pd.DataFrame:
-#     return base_df
-
-
 
 def parse_cramer_classifications(fn_cramer_csv: str) -> pd.DataFrame:
     """parses cramer classification and smiles per compound from input csv"""
@@ -176,16 +123,6 @@ def parse_cramer_classifications(fn_cramer_csv: str) -> pd.DataFrame:
             l_cramer.append((cramer_class,cramer_smiles))
     df_cramer = pd.DataFrame(l_cramer,columns=("cramer_classification","SMILES"))
     return df_cramer
-
-# def get_integration_settings(integrate_name: Any,integration_column: Any,integration_fn: str | bytes) -> tuple[Any,Any,dict]:
-        
-#     integration_settings: dict = json.load(integration_fn)[integrate_name]
-#     if "integrate_on" in integration_settings:
-#         source_integration_col = integration_settings["integrate_on"].get(integration_column,integration_settings["integrate_on"])
-#     else:
-#         source_integration_col = "N/A"
-#     name_dict = integration_settings[integrate_name].get("name_translations","N/A")
-#     return integration_column,source_integration_col,name_dict
 
 def get_merging_settings(config: dict,target_integration_col: str) -> tuple[str,str,dict]:
         """Gets columns to integrate on and column translations from config"""
