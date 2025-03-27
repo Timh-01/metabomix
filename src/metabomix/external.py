@@ -15,7 +15,6 @@ def filter_component(G, max_component_size):
             if len(component) > max_component_size:
                 prune_component(G, component)
                 big_components_present = True
-        #print("After Round of Component Pruning", len(G.edges()))
         
 def prune_component(G, component, cosine_delta=0.02):
     component_edges = get_edges_of_component(G, component)

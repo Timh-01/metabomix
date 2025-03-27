@@ -35,8 +35,6 @@ from .parsing import *
 # from src.myworkflow.visualisation import *
 # from src.myworkflow.unrefined import *
 # from src.myworkflow.running import * #run_mzmine, run_sirius, run_mzmine run_toxtree,run_classyfire, run_ms2lda_post_to_classyfire, check_classyfire_done, get_classyfire_results
-# from src.myworkflow.util import validate_dictkeys,json_from_string_or_file,get_filelist_from_folder,convert_missing,integrate_df_cols_to_df
-# from src.myworkflow.external import batched,filter_component,prune_component,get_edges_of_component
 
 class MetaboMix():
     '''Holds the full workflow
