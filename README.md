@@ -3,7 +3,7 @@ Every run of the workflow is called a Mix, resulting in an annotated molecular n
 
 Currently supported tools include  [MZMine](https://mzio.io/mzmine-news/) (data pre-processing), [MatchMS](https://github.com/matchms/matchms) (molecular networking), the [SIRIUS/CSI:FingerID/CANOPUS pipeline](https://bio.informatik.uni-jena.de/software/sirius/) (in-silico molecular formula/compound/classification prediction), [ClassyFire](https://jcheminf.biomedcentral.com/articles/10.1186/s13321-016-0174-y) (structure-based classification), [ToxTree](https://toxtree.sourceforge.net/) (structure based toxicity prediction) and the [PlastChem database](https://github.com/PlastChem) (on plastic related  compounds).
 
-MetaboMix was created as a Msc thesis project at the [Van der Hooft Computational Metabolomics Group](https://vdhooftcompmet.github.io/) at the [Bioinformatics department](https://www.wur.nl/en/Research-Results/Chair-groups/Plant-Sciences/Bioinformatics.htm) of [Wageningen University & Research](https://www.wur.nl/en.htm)
+MetaboMix was created as a Msc thesis project at the [Van der Hooft Computational Metabolomics Group](https://vdhooftcompmet.github.io/) at the [Bioinformatics department](https://www.wur.nl/en/Research-Results/Chair-groups/Plant-Sciences/Bioinformatics.htm) of [Wageningen University & Research](https://www.wur.nl/en.htm).
 
 
 # Quickstart
@@ -14,6 +14,7 @@ $ conda env -f ENV.yml
 $ pip install metabomix
 3) From the example folder: run main.py 
 4) In Results > Example_run a graphML file can be found; this is the network and can be visualized in tools such as cytoscape. 
+See example_notebook (in the "example" folder) to get a quick walkthrough in jupiter notebook format
 
 # How does it work?
 ## Recipes
