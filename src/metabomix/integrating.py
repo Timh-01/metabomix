@@ -3,6 +3,15 @@ import numpy as np
 import json
 from typing import Any
 
+
+
+
+from matchms.similarity import ModifiedCosine
+from matchms import calculate_scores
+import matchms.Scores
+
+from matchms.importing import load_from_mgf
+from matchms.similarity import CosineGreedy
 from matchms.importing import load_from_mgf
 from matplotlib import pyplot as plt
 from matchms.filtering import remove_peaks_around_precursor_mz, remove_peaks_outside_top_k,select_by_mz
@@ -18,8 +27,14 @@ import rdkit.Chem.PandasTools
 
 try:
     import MS2LDA
+    from MS2LDA.Add_On.Spec2Vec.annotation import load_s2v_model 
+    from MS2LDA.utils import download_model_and_data
+    from MS2LDA.Add_On.MassQL.MassQL4MotifDB import load_motifDB
+    from MS2LDA.Add_On.MassQL.MassQL4MotifDB import motifDB2motifs
 except ImportError:
      MS2LDA = None
+    
+
 
 def network_to_edgelist_and_nodes_df(graph: nx.Graph) -> tuple[pd.DataFrame, pd.DataFrame]:
     """splits a networkx graph into an edge and nodes dataframe"""
@@ -56,10 +71,12 @@ def df_to_graph(graph: nx.Graph,to_merge: pd.DataFrame,translator: dict[str,str]
                 graph.nodes[scan][newname] = result[oldname]
     return graph
 
-def integrate_ms2lda_to_df(dataframe: pd.DataFrame, dataset: str,output_folder: str,output_database: str) -> pd.DataFrame:
+def integrate_ms2lda_to_df_old(dataframe: pd.DataFrame, dataset: str,output_folder: str,output_database: str,annotation_parameters:dict) -> pd.DataFrame:
     """Get motifs per feature and use feature ID to merge motifs to network"""
     motifDB_query = "QUERY scaninfo(MS2DATA)"
-    screening_hits = MS2LDA.screen_spectra(motifDB=output_database, dataset=dataset, motifDB_query=motifDB_query, output_folder=output_folder)
+    path_model = annotation_parameters.get("s2v_model_path")
+    s2v_similarity = load_s2v_model(path_model=path_model)
+    screening_hits = MS2LDA.screen_spectra(motifDB=output_database, dataset=dataset, s2v_similarity=s2v_similarity,motifDB_query=motifDB_query, output_folder=output_folder)
     with open(dataset) as file:
         A = file.read()
         feature_ids = [entry.split('\n')[1][11:] for entry in A.split("BEGIN IONS")[1:]]
@@ -73,6 +90,36 @@ def integrate_ms2lda_to_df(dataframe: pd.DataFrame, dataset: str,output_folder: 
         dataframe['temp_indexcopy'] = dataframe.index
         dataframe["MS2LDA:allmotifs"] = dataframe['temp_indexcopy'].map(lambda x: map_motifs(x,d_motif_per_scan))
         dataframe = dataframe.drop('temp_indexcopy',axis=1)
+    return dataframe
+
+def integrate_ms2lda_to_df(dataframe: pd.DataFrame, mgf: str,motifset:str) -> pd.DataFrame:
+    """Get motifs per feature and use feature ID to merge motifs to network"""
+    # motifset = "/lustre/BIF/nobackup/hendr218/thesis/04_04_2025/pos/pos/ms2lda/motifset.json"
+    motifDB_ms1, motifDB_ms2 = load_motifDB(motifset)
+    # mgf = "/lustre/BIF/nobackup/hendr218/thesis/04_04_2025/pos/pos/mzmine/mzmine_sirius.mgf"
+    # mgf =  "/lustre/BIF/nobackup/hendr218/thesis/04_04_2025/pos/pos/mzmine/mzmine_iimn_fbmn.mgf"
+
+    motifs = motifDB2motifs(motifDB_ms2)
+    spectrums:list[matchms.Spectrum] = list(load_from_mgf(mgf))
+    scores: matchms.Scores = calculate_scores(references=motifs, queries=spectrums, similarity_function=CosineGreedy()) #,is_symmetric=False)
+
+    motif_features = {}
+    for ref in scores.references:
+        motif = ref.metadata.get("id")
+        features = {spectrum.metadata.get("feature_id") for spectrum, (score,matches) in scores.scores_by_reference(ref,"CosineGreedy_score") if score> 0.7}
+        
+        motif_features[motif] = features
+
+    feature_motifs = {}
+    for motif, features in motif_features.items():
+        for feature in features:
+            if not feature in feature_motifs: 
+                feature_motifs[feature] = [motif]
+            else:
+                feature_motifs[feature].append(motif)
+
+    dataframe['temp_indexcopy'] = dataframe.index
+    dataframe["MS2LDA:allmotifs"] = dataframe['temp_indexcopy'].map(feature_motifs)
     return dataframe
 # integrate_df_values_if_shared_other_value(integrated_df,plastchem_df,canonical_smiles,csifingerid:smiles,plastchem:hazard_score,hazard_score)
 # def integrate_df_values_if_shared_other_value(df1,df2,col_sh1,colsh2,newcol,colint2):
@@ -185,14 +232,27 @@ def temp_metadata_adder(dataframe: pd.DataFrame,input_mgf: str,metadata_csv: str
         entries = A.split("BEGIN IONS")[1:]
 
     id_files_dict = {}
-    # rt_dict = {}
-    # mass_dict = {}
+    id_rt_dict = {}
+    id_mass_dict = {}
     for entry in entries:
         feature_id = entry.split('\n')[1][11:] 
         if "FILENAME" in entry:
             files = entry.split("FILENAME")[1][1:].split('\n')[0]
             id_files_dict[feature_id] = files.split(";")
 
+    for entry in entries:
+        feature_id = entry.split('\n')[1][11:] 
+        if "FILENAME" in entry:
+            files = entry.split("FILENAME")[1][1:].split('\n')[0]
+            id_files_dict[feature_id] = files.split(";")
+        if "RTINSECONDS" in entry:
+            files = entry.split("RTINSECONDS")[1][1:].split('\n')[0]
+            id_rt_dict[feature_id] = files
+        if "PEPMASS" in entry:
+            files = entry.split("PEPMASS")[1][1:].split('\n')[0]
+            id_mass_dict[feature_id] = files
+    dataframe["retention_time"] = dataframe.index.map(id_rt_dict)
+    dataframe["precursor_mass"] = dataframe.index.map(id_mass_dict)
     metadata_dict = {}
     with open(metadata_csv) as file:
         for line in file.readlines()[1:]:
