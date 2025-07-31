@@ -91,7 +91,7 @@ class mzbatch_writer():
 
         def get_provided_params(self,available_params) -> list:
             """Check which available mzmine params were selected in settings file"""
-            provided_params: list = [param for param in available_params if self.params.get(param) == "True"]
+            provided_params: list = [param for param in available_params if param in self.params]
             return provided_params
 
            
@@ -101,14 +101,14 @@ class mzbatch_writer():
             for elem in self.do_mzbatch_search(param_name):
                 elem.text = new_value
 
-        def do_mzbatch_search(self,searcher_holder: list[str]) -> Any:
+        def do_mzbatch_search(self,searchterm: list[str]) -> Any:
             "Find all instances of an element in mzbatch"
             all_findings: list[ET.Element] = []
-            for searchterm in searcher_holder:
-                for elem in self.root.findall(searchterm):
-                    all_findings.append(elem)
-                for elem in all_findings:
-                    yield elem
+            # for searchterm in searcher_holder:
+            for elem in self.root.findall(searchterm):
+                all_findings.append(elem)
+            for elem in all_findings:
+                yield elem
 
         def replace_metadata(self,metadata_fn: str) -> None:
             """Replace metadata file with file from settings"""
@@ -157,7 +157,7 @@ def run_sirius(input_path: str, output_path: str, sirius_path: str, **kwargs) ->
     #config = "--FormulaSearchSettings.applyFormulaConstraintsToBottomUp=false --IsotopeSettings.filter=true --UseHeuristic.useOnlyHeuristicAboveMz=650 --FormulaSearchDB=plastchem --Timeout.secondsPerTree=0 --FormulaSettings.enforced=H,C,N,O,F,P,I --Timeout.secondsPerInstance=0 --AlgorithmProfile=qtof --SpectralMatchingMassDeviation.allowedPeakDeviation=10.0ppm --AdductSettings.ignoreDetectedAdducts=false --AdductSettings.enforced=, --AdductSettings.prioritizeInputFileAdducts=true --UseHeuristic.useHeuristicAboveMz=300 --IsotopeMs2Settings=IGNORE --MS2MassDeviation.allowedMassDeviation=10.0ppm --SpectralMatchingMassDeviation.allowedPrecursorDeviation=10.0ppm --FormulaSearchSettings.performDeNovoBelowMz=0 --FormulaSearchSettings.applyFormulaConstraintsToDatabaseCandidates=false --EnforceElGordoFormula=true --NumberOfCandidatesPerIonization=1 --FormulaSettings.detectable=B,S,Cl,Se,Br --NumberOfCandidates=10 --AdductSettings.fallback=[[M+H]+,[M+Na]+,[M+K]+] --FormulaSearchSettings.performBottomUpAboveMz=Infinity --RecomputeResults=false spectra-search"
     instrument = kwargs["instrument"] if "instrument" in kwargs else "orbitrap"
     # subprocess_command = f"{sirius_path} --input {input_path} --output {output_path}.sirius config {config} formulas -p {instrument} fingerprints classes structures write-summaries"
-    subprocess_command = f"{sirius_path} --input {input_path} --output '{output_path}.sirius' formulas fingerprints classes structures write-summaries"
+    subprocess_command = f"{sirius_path} --input {input_path} --output '{output_path}.sirisiriusus' formulas fingerprints classes structures write-summaries"
     run_subprocess(subprocess_command)
     return True
 
@@ -286,7 +286,6 @@ def get_classyfire_results(base_url: str,retrieve_id: str) -> str:
         except requests.exceptions.Timeout: # | (NameError):
             continue
     return contents
-
 def set_ms2lda_params():
     preprocessing_parameters = {
         "min_mz": 0,

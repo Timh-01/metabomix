@@ -87,6 +87,11 @@ class MetaboMix():
     def run_all(self) -> None:
         self.run_and_integrate_per_depth()
         print("Sucesfully ran and integrated all tools")
+        self.create_network()
+        self.write_graphml()
+        with open(f"{self.output_folder}/mix.pickle","wb") as file:
+            pickle.dump(self,file)
+            print("wrote pos pickle")
 
     def get_depths(self,tools: Iterable,goal:str) -> dict[Any,str]:
         """"""
@@ -138,7 +143,8 @@ class MetaboMix():
         for cf_class in ["subclass","class","superclass"]:
                     self.network_df[cf_class] = self.network_df.apply(lambda x: self.get_consensus_class(row=x,classtype=cf_class),axis=1)
        # target_df[target_df["Molecular formula"].notna()].merge(source_df[source_df["molecular_formula"].notna()],left_on="Molecular formula",right_on="molecular_formula")
-        self.produce_integrated_graphml()
+       
+
         
     def get_consensus_formula(self,row):
         """Get formula from database sirius formula if exists, otherwise normal formula"""
@@ -179,7 +185,7 @@ class MetaboMix():
                     features_per_motif[motif].append(feature_id)
         return features_per_motif
 
-    def produce_integrated_graphml(self) -> None:
+    def create_network(self) -> nx.Graph:
         """Cleans, filters and creates graphml from network DF and edges
         
         Topology filter is always used: cluster can be only of 100 nodes. 
@@ -197,18 +203,33 @@ class MetaboMix():
             for attribute in nodes_dict[node_ID]:
                 integrated_network.nodes[node_ID][attribute] = nodes_dict[node_ID][attribute]
         filter_component(integrated_network,100)
-
-        nx.write_graphml(integrated_network, f"{self.output_folder}/{self.name}_premotifs.graphml")
-
-        if "MS2LDA" in self.settings.to_integrate:
-            df_motifs = integrated_df["MS2LDA:allmotifs"][integrated_df["MS2LDA:allmotifs"] != "N/A"]
+        self.network = integrated_network
+        return integrated_network
+    
+    def mass_difference_to_edges(self):
+        integrated_network = self.network
+        # Add mass difference to edges
+        for e1,e2 in integrated_network.edges:
+            massdiff = float(integrated_network.nodes[e1]["precursor_mass"]) - float(integrated_network.nodes[e2]["precursor_mass"])
+            integrated_network[e1][e2]["mass_difference"] = round(abs(massdiff),3)
+        self.network = integrated_network
+        
+    def motifs_to_edges(self):
+        if "ms2lda" in self.settings.to_integrate:
+            network_ms2lda = self.network.copy()
+            df_motifs = self.network_df["MS2LDA:allmotifs"][self.network_df["MS2LDA:allmotifs"].notna()]
             features_per_motif = self.get_features_per_motif(df_motifs)
             for motif in features_per_motif:
                 combinations = list(itertools.combinations(features_per_motif[motif],2))
                 # print(combinations)
                 combinations = [tuple([combination[0],combination[1],{motif:True}]) for combination in combinations]
-                integrated_network.add_edges_from(combinations,motif=motif,type="motif")
-            nx.write_graphml(integrated_network, f"{self.output_folder}/{self.name}_postmotifs.graphml")
+                network_ms2lda.add_edges_from(combinations,motif=motif,type="motif")
+            self.network_ms2lda = network_ms2lda
+
+    def write_graphml(self) -> None:
+        nx.write_graphml(self.network, f"{self.output_folder}/{self.name}.graphml")
+        if "ms2lda" in self.settings.to_integrate:
+            nx.write_graphml(self.network_ms2lda, f"{self.output_folder}/{self.name}_postmotifs.graphml")
 
     def run_tool(self,tool: Any) -> None:
         """Get running parameters and run selected tool
@@ -277,6 +298,7 @@ class MetaboMix():
                 #print("ran toxtree (not, debug)")
                 print('running toxtree')
                 run_toxtree(input_path=input_csv,output_path=output_path,toxtree_path=toxtree_loc,module_path=toxtree_module)
+                
        
     def integrate_tool(self,tool: Any) -> None:
         """Get needed paramaters and integrate selected tool
@@ -298,9 +320,12 @@ class MetaboMix():
             case "ms2lda":
                 print('integrating ms2lda')
                 output_folder = self.settings.paths.get("ms2lda_output")
-                dataset = self.settings.paths.get("input_mgf")
-                output_database = self.settings.paths.get("ms2lda_results_db")
-                self.network_df = integrate_ms2lda_to_df(self.network_df,dataset,output_folder,output_database)
+                mgf = self.settings.paths.get("input_mgf")
+                motifset = dataset = self.settings.paths.get("ms2lda_motifset")
+                self.network_df = integrate_ms2lda_to_df(self.network_df,mgf=mgf,motifset=motifset)
+                # output_database = self.settings.paths.get("ms2lda_results_db")
+                # annotation_parameters = self.settings.ms2lda.get("annotation_parameters")
+                # self.network_df = integrate_ms2lda_to_df(self.network_df,dataset,output_folder,output_database,annotation_parameters)
             case "mzmine":
                 #temp to get some quick results, will be improved later dataframe: pd.DataFrame,input_mgf: str,metadata_csv: str,quant_table: str
                 print('integrating mzmine')
@@ -458,10 +483,11 @@ class RecipeHolder:
                     self.ms2lda = tool_settings
                     ms2lda_loc = f"{self.output_folder}/ms2lda"
                     self.paths["ms2lda_output"] = f"{ms2lda_loc}"
-                    self.paths["ms2lda_results_db"] = f"{self.output_folder}/ms2lda/motifDB_optimized.xlsx"
+                    # self.paths["ms2lda_results_db"] = f"{self.output_folder}/ms2lda/motifset_optimized.json"
+                    self.paths["ms2lda_motifset"] = f"{self.output_folder}/ms2lda/motifset_optimized.json"
 
     def get_tool_requirements(self,tool: str, goal:str) -> tuple[list,list,list,list]:
-        """Get requirements if available, otherwise return emoty list"""
+        """Get requirements if available, otherwise return empty list"""
         config = self.config.get(tool,{}).get(goal,{}).get("requirements",{})
         required_paths: Iterable[Any] = config.get("paths",[])
         required_settings: Iterable[Any] = config.get("settings",[])
@@ -479,14 +505,14 @@ class RecipeHolder:
         if not validate_dictkeys(self.input.get(tool),required_settings):
             raise Settingserror(f"One of {required_settings} missing in {tool} settings")
         for combination in required_optional_paths:
-            if not validate_dictkeys(self.paths,combination):
-                    raise Settingserror(f"Any one of {combination} required to run {tool}, but one is missing in paths settings")
+            if not any(validate_dictkeys(self.paths,[optional_setting]) for optional_setting in combination):
+                raise Settingserror(f"Any one of {combination} required to run {tool}, but one is missing in paths settings")
         for combination in required_optional_settings:
             if not validate_dictkeys(self.input.get(tool),combination):
-                    raise Settingserror(f"Any of {combination} is required in {tool} settings")
-        for module in required_modules:
-            if not module in sys.modules:
-                raise Settingserror(f"all of {required_modules} required to run {tool}, but one is missing in imported modules")
+                raise Settingserror(f"Any of {combination} is required in {tool} settings")
+        # for module in required_modules:
+        #     if not module in sys.modules:
+        #         raise Settingserror(f"all of {required_modules} required to run {tool}, but one is missing in imported modules")
 
     def select_used_tools(self,available_tools: list,setting: str) -> list:
         """Check which available tools were selected in settings file"""
