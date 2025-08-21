@@ -413,7 +413,7 @@ class RecipeHolder:
         self.paths: dict = self.input["paths"]
         self.name = self.paths.get("name",ctime().replace(" ","_"))
         self.output_folder = f'{self.paths.get("base_output_folder")}/{self.name}'
-        Path(self.output_folder).mkdir(exist_ok=True)
+        Path(self.output_folder).mkdir(parents=True, exist_ok=True)
         self.to_run: list[str] = self.select_used_tools(available_tools=available_tools,setting="run_tools")
         self.to_integrate: list[str] = self.select_used_tools(available_tools=available_integrations,setting="integrate_tools")
 
