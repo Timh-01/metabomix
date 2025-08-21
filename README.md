@@ -8,11 +8,15 @@ MetaboMix was created as a Msc thesis project at the [Van der Hooft Computationa
 
 # Quickstart
 This will create a molecular network via MatchMS from an example MGF (A common format for mass spectrometry data).
-1) create conda environment from ENV.yml 
-$ conda env -f ENV.yml
+1) create conda environment from ENV.yml by:
+conda env -f ENV.yml
+2) activate your environment:
+conda activate metabomix
 2) pip install metabomix in the environment, activate environment
 $ pip install metabomix
-3) From the example folder: run main.py 
+if this doesn't work, go to main the folder and type:
+pip install -e .
+3) From the example folder: run main.py, or run the notebook: 'example_notebook.ipynb', we have provided a pesticide dataset called pesticides.mgf 
 4) In Results > Example_run a graphML file can be found; this is the network and can be visualized in tools such as cytoscape. 
 See example_notebook (in the "example" folder) to get a quick walkthrough in jupiter notebook format
 
